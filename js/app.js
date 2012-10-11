@@ -1,6 +1,4 @@
 (function ($) {
-	
-	
     var contacts = [
         { name: "Contact 1", address: "1, a street, a town, a city, AB12 3CD", tel: "0123456789", email: "anemail@me.com", type: "family" },
         { name: "Contact 2", address: "1, a street, a town, a city, AB12 3CD", tel: "0123456789", email: "anemail@me.com", type: "family" },
@@ -15,7 +13,7 @@
 	//contact model
 	var Contact = Backbone.Model.extend({
 	    defaults: {
-	        photo: "/img/placeholder.png"
+	        photo: "img/placeholder.png"
 	    }
 	});
 	
@@ -42,12 +40,18 @@
 	// Master view
 	var DirectoryView = Backbone.View.extend({
 	    el: $("#contacts"),
+	
 	    initialize: function () {
 	        this.collection = new Directory(contacts);
+	
 	        this.render();
+			//render select dropdown
+			this.$el.find("#filter").append(this.createSelect());	
 	    },
+	
 	    render: function () {
 	        var that = this;
+	
 	        _.each(this.collection.models, function (item) {
 	            that.renderContact(item);
 	        }, this);
@@ -57,7 +61,36 @@
 	            model: item
 	        });
 	        this.$el.append(contactView.render().el);
-	    }
+	    },
+		//select dropdown
+		getTypes: function () {
+		    return _.uniq(this.collection.pluck("type"));
+		},
+		
+		createSelect: function () {
+		    var select = $("<select/>", {
+		            html: "<option value='all'>All</option>"
+		        });
+		
+		    _.each(this.getTypes(), function (item) {
+		        var option = $("<option/>", {
+		            value: item,
+		            text: item
+		        }).appendTo(select);
+		    });
+		    return select;
+		},
+		
+		//add ui events
+        events: {
+            "change #filter select": "setFilter"
+        },
+
+		//setFilter property and fire change event
+		setFilter: function (e) {
+		    this.filterType = e.currentTarget.value;
+		    this.trigger("change:filterType");
+		},
 	});
 	
 	//create instance of master view
